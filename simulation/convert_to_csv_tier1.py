@@ -38,10 +38,11 @@ def IsTreeKey(filekeys,keyname):
 
 def get_neutron_info(filename, option='detailed'):
     file=uproot.open(filename)
+    print(filename)
     if len(file.keys())==0:
         file.close()
         print(f"WARNING: Empty file {filename}", flush=True)
-        return -1
+        sys.exit(1)
     # read in root TTree named Score
     key=GetTreeKeySimulation(file.keys())
     tree = file[key]
@@ -65,17 +66,22 @@ def get_neutron_info(filename, option='detailed'):
         zmom=branches[f'{keyprefix}Momentum_z_in_m']
         ekin=branches[f'{keyprefix}Ekin_in_eV']
         edep=branches[f'{keyprefix}Edep_in_eV']
+        
 
     process=branches[f'{keyprefix}Process']
     volume=branches[f'{keyprefix}Volume']
     nC_A=branches[f'{keyprefix}Secondary_A']
     nC_Z=branches[f'{keyprefix}Secondary_Z']
+    tree_score = file["Score"]
+    branches_score = tree_score.arrays(library='np')
+    weight=branches_score['EventWeights']
 
 
     x_new=[]
     y_new=[]
     z_new=[]
     tid_new=[]
+    weight_new=[]
     xmom_new=[]
     ymom_new=[]
     zmom_new=[]
@@ -119,6 +125,7 @@ def get_neutron_info(filename, option='detailed'):
                     
                     if (nidx[i][last_index]==0):
                         nsec.append(nidx[i][-1]+1)
+                        weight_new.append(weight[i])
                         
                         if option == "detailed":
                             # individual number of steps for each neutron => variable lenght of each x_new[i], len(x_new)!=const
@@ -200,14 +207,16 @@ def get_neutron_info(filename, option='detailed'):
     file.close()
     # avoid truncation, works only when displaying data frame, not when printing to file
     np.set_printoptions(threshold=sys.maxsize)
+    
+
     if option == "detailed":
-        df = pd.DataFrame({'nidx':nidx_new,'tid':tid_new,'time[mus]':time_new,'x[m]':x_new,'y[m]': y_new,'z[m]': z_new,'xmom[m]': xmom_new,'ymom[m]': ymom_new,'zmom[m]': zmom_new,'ekin[eV]': ekin_new,'edep[eV]': edep_new,'vol': vol_new,'process': process_new,'nC_A': nC_A_new,'nC_Z': nC_Z_new,'cross_water': cross_water, 'cross_cryo': cross_cryo, 'cross_uar': cross_uar,'nsecondaries': nsec, 'nsecondaries_with_nC': nsec_with_nC})
+        df = pd.DataFrame({'nidx':nidx_new,'tid':tid_new,'weight': ["{:.5e}".format(val[0]) for val in weight_new],'time[mus]':time_new,'x[m]':x_new,'y[m]': y_new,'z[m]': z_new,'xmom[m]': xmom_new,'ymom[m]': ymom_new,'zmom[m]': zmom_new,'ekin[eV]': ekin_new,'edep[eV]': edep_new,'vol': vol_new,'process': process_new,'nC_A': nC_A_new,'nC_Z': nC_Z_new,'cross_water': cross_water, 'cross_cryo': cross_cryo, 'cross_uar': cross_uar,'nsecondaries': nsec, 'nsecondaries_with_nC': nsec_with_nC})
     # print only parameters used for Ge77 rate calclulation
     else:
-        df = pd.DataFrame({'nidx':nidx_new, 'tid':tid_new, 'nC_A': nC_A_new, 'nC_Z': nC_Z_new, 'cross_cryo': cross_cryo})
+        df = pd.DataFrame({'nidx':nidx_new, 'tid':tid_new, 'weight': weight_new,'nC_A': nC_A_new, 'nC_Z': nC_Z_new, 'cross_cryo': cross_cryo})
 
-    print(f"{tracksize} maximal steps per track, {len(x_new)}")
-    print("runtime: ",datetime.now()-startTime,flush=True)
+    #print(f"{tracksize} maximal steps per track, {len(x_new)}")
+    #print("runtime: ",datetime.now()-startTime,flush=True)
     return df
 
 def get_volume_from_root(filename):
@@ -215,7 +224,7 @@ def get_volume_from_root(filename):
     if len(file.keys())==0:
         file.close()
         print(f"WARNING: Empty file {filename}", flush=True)
-        return -1
+        sys.exit(1)
     keyname='TurbineAndTube'
     tree_found=False
     for k in file.keys():
@@ -238,7 +247,7 @@ def get_design_parameters_from_root(filename):
     if len(file.keys())==0:
         file.close()
         print(f"WARNING: Empty file {filename}", flush=True)
-        return -1
+        sys.exit(1)
     keyname='TurbineAndTube'
     params=[]
     tree_found=False
@@ -256,14 +265,13 @@ def get_design_parameters_from_root(filename):
     params.append(branches['Design'][0][0])
     params.append(branches['Radius_cm'][0][0])
     params.append(branches['Thickness_cm'][0][0])
-    params.append(branches['NPanels'][0][0])
-    #params.append(branches['Phi_deg'][0][0])
-    params.append(branches['Angle_deg'][0][0])
+    params.append(np.round(branches['NPanels'][0][0],0))
+    params.append(np.round(branches['Phi_deg'][0][0],2))
+    params.append(branches['Theta_deg'][0][0])
     params.append(branches['Length_cm'][0][0])
     params.append(branches['Height_cm'][0][0])
     params.append(branches['ZPosition_cm'][0][0])
     params.append(np.round(branches['Volume_cm3'][0][0],2))
-    print(params)
 
     return params
 
@@ -283,7 +291,7 @@ def get_design_parameters_from_csv(filename,idx):
 
     return params
 
-def main(filename, start, end, mode, params): # python file
+def main(filename, start, end, mode, params, events): # python file
 #def main(filename, start=0, end=0, mode='LF', params=""): # jupyter notebook
     filenames=[]
     if end>0:
@@ -292,17 +300,18 @@ def main(filename, start, end, mode, params): # python file
             filenames.extend(get_all_files(name))
     else:
        filenames.extend(get_all_files(filename))
+       print(filenames)
 
     for file in filenames:
-        print(f"Processing {file}", flush=True)
+        #print(f"Processing {file}", flush=True)
         filename_out = file[:file.find('.root')]
         filename_out = filename_out.replace("tier0", "tier1")
         
         if not params:
             tmp = filename_out.replace("/root/", "/csv/tier0/")
-            with open(f"{tmp}.csv") as f:
-                params = f.readline().strip('\n')
-            #params=f"{get_design_parameters_from_root(file)}".replace(' ', '')
+            #with open(f"{tmp}.csv") as f:
+            #    params = f.readline().strip('\n')
+            params=f"{get_design_parameters_from_root(file)}".replace(' ', '')
 
         df_out = get_neutron_info(file)
         filename_out = filename_out.replace("/root/", "/csv/tier1/")
@@ -313,25 +322,25 @@ def main(filename, start, end, mode, params): # python file
             continue
         
         
-        print(file[:file.find('.root')],filename_out)
+        #print(file[:file.find('.root')],filename_out)
         try:
             os.remove(f"{filename_out}.csv")
         except FileNotFoundError:
             pass
         writing_mode='w'
-        print(f"Writing {filename_out}.csv", flush=True)
+        #print(f"Writing {filename_out}.csv", flush=True)
         if params:
             f = open(f"{filename_out}.csv", "w")#
-            f.write(params+"\n")
-            #f.write(f"# [{mode}, {', '.join(params[1:-1].split(','))}] # mode design r d npanels phi theta L H z V"+"\n")
+            #f.write(params+"\n")
+            f.write(f"# [{mode}, {', '.join(params[1:-1].split(','))}] # mode design r d npanels phi theta L H z V"+"\n")
             f.close()
             writing_mode='a'
         startTime = datetime.now()
-        
+        if len(df_out) < events:
+            sys.exit(1)
         df_out.to_csv(f"{filename_out}.csv", mode=writing_mode)
-        print("writing file runtime: ",datetime.now() - startTime,flush=True)
+        #print("writing file runtime: ",datetime.now() - startTime,flush=True)
         del df_out
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -339,7 +348,8 @@ if __name__ == "__main__":
     parser.add_argument('--start', type=int, default=0)
     parser.add_argument('--end', type=int, default=0)
     parser.add_argument('--mode', default='LF')
+    parser.add_argument('--events',type=int,default=0)
     parser.add_argument('--params', type=str, default="")
     args = parser.parse_args()
 
-    main(args.filename, args.start, args.end, args.mode, args.params)
+    main(args.filename, args.start, args.end, args.mode, args.params, args.events)

@@ -89,6 +89,12 @@ class SimulationFile():
         nsteps = [len(i) for i in x]
         return nsteps
     
+    def get_total_nC_Ge77(self):
+        nC_Ge77=self.is_captured()
+        nsec_with_nC=self.get("nsecondaries_with_nC")
+        total_nC_Ge77 = [nC_Ge77[i]+nsec_with_nC[i] for i in range(len(nC_Ge77))]
+        return total_nC_Ge77
+    
     
     def is_in_LAr(self):
         '''
@@ -114,20 +120,40 @@ class SimulationFile():
             vec=self.df[key].to_numpy()
             if isinstance(vec[0],Number)==False:
                 vec=[np.fromstring(x[1:-1], sep=' ') for x in vec ]
+        elif key == "r[m]":
+            vec=self.get_r()
+        elif key == "L[m]":
+            vec=self.get_L()
+        elif key == "ln(E0vsET)":
+            vec=self.get_lnE0vsET()
+        elif key == "nsteps":
+            vec=self.get_nsteps()
+        elif key == "total_nC_Ge77[cts]":
+            vec=self.get_total_nC_Ge77()
         else:
             if not self.df.empty:
                 print ("Warning",key, "does not exists in the DataFrame. Returning empty vector",self.keys())
             return [0]
         
-        
         if option=="last" and isinstance(vec[0],Number)==False:
                 vec=[x[len(x)-1] for x in vec]
-                print(vec[0])
         elif option=="first"  and isinstance(vec[0],Number)==False:
                 vec=[x[0] for x in vec]
-                print(vec[0])
-        
+
+        if isinstance(vec[0],Number):
+                vec=[x for x in vec] 
+        else:
+            if option=="last":
+                element=1
+                if "edep" in key or "ekin" in key or "xmom[m]" in key or "ymom[m]" in key or "zmom[m]" in key:
+                    element=2
+                vec=[x[len(x)-element] for x in vec]
+            elif option=="first":
+                vec=[x[0] for x in vec]
+            else:
+                vec=[x for x in vec]
         return vec
+
     
     def get_is_in_LAr(self, key, option=""):
         '''
@@ -196,12 +222,18 @@ class SimulationFile():
 
 class NeutronSimulation(SimulationFile):
     def __init__(self, filename="neutron-sim-design0"):
-        self.files = get_all_files(filename,".csv")
-        print("files: ", self.files)
+        self.files=[]
+        if filename!=None:
+            self.files = get_all_files(filename,".csv")
+        #print("files: ", self.files)
+
+    def set_files(self,filelist):
+        self.files = filelist
 
     def keys(self):
         sim_tmp=SimulationFile(self.files[0])
-        print(sim_tmp.keys())
+        #print(sim_tmp.keys())
+    
 
     def NGe77(self):
         nge77=0

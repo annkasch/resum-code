@@ -385,3 +385,17 @@ def get_subplot_moderator(ax, x):
     a2 = r2 * np.cos( alpha )
     b2 = r2 * np.sin( alpha )
     ax.plot( a2, b2, color='gray')
+
+def parameter_constraints(x):
+        if any(i < 0 for i in x) is True:
+            return 0
+        elif get_inner_radius(x) < 90.:
+            return 0
+        elif get_outer_radius(x) > 265.:
+            return 0
+        elif get_outer_radius(x)-get_inner_radius(x)  > 20.:
+            return 0
+        elif x[2]*x[1]*x[4] > np.pi*(get_outer_radius(x)**2-get_inner_radius(x)**2):
+                return 0
+        else:
+            return 1

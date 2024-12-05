@@ -29,7 +29,7 @@ import plotting_utils as plotting
 
 # Construct a linear multi-fidelity model
 
-def linear_multi_fidelity_model(x_train_lf, y_train_lf, noise_lf, x_train_mf, y_train_mf, noise_mf, x_train_hf, y_train_hf):
+def linear_multi_fidelity_model(x_train_lf, y_train_lf, noise_lf, x_train_mf, y_train_mf, noise_mf, x_train_hf, y_train_hf, n_restarts=100):
     X_train, Y_train = convert_xy_lists_to_arrays([x_train_lf,x_train_mf,x_train_hf], [y_train_lf,y_train_mf, y_train_hf])
 
     #kernels = [GPy.kern.RBF(X_train[0].shape[0]-1),GPy.kern.RBF(1)]
@@ -40,11 +40,11 @@ def linear_multi_fidelity_model(x_train_lf, y_train_lf, noise_lf, x_train_mf, y_
     gpy_lin_mf_model = GPyLinearMultiFidelityModel(X_train, Y_train, lin_mf_kernel, n_fidelities=3)
 
     gpy_lin_mf_model.mixed_noise.Gaussian_noise.fix(noise_lf)
-    gpy_lin_mf_model.mixed_noise.Gaussian_noise_1.fix(0.)
-    gpy_lin_mf_model.mixed_noise.Gaussian_noise_2.fix(0.)
+    gpy_lin_mf_model.mixed_noise.Gaussian_noise_1.fix(0.0)
+    gpy_lin_mf_model.mixed_noise.Gaussian_noise_2.fix(0.0)
 
     ## Wrap the model using the given 'GPyMultiOutputWrapper'
-    lin_mf_model = GPyMultiOutputWrapper(gpy_lin_mf_model, 2, n_optimization_restarts=100, verbose_optimization=True)
+    lin_mf_model = GPyMultiOutputWrapper(gpy_lin_mf_model, 3, n_optimization_restarts=n_restarts, verbose_optimization=True)
 
     ## Fit the model
     lin_mf_model.optimize()

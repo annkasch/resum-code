@@ -19,7 +19,7 @@ def draw_model(mf_model, xmin, xmax, labels, factor=1., version='v1', x_fixed=[1
     SPLIT = 100
     ncol=3
     nrow=int(np.ceil(len(labels)/ncol))
-    fig,ax = plt.subplots(nrow,ncol,figsize=(15, 5),layout="constrained")
+    fig,ax = plt.subplots(nrow,ncol,figsize=(15, 5),constrained_layout=True)
     ax = fig.axes
     pdf=PdfPages(f'out/{version}/neutron-moderator-multi-fidelity-model_{version}.pdf')
 
