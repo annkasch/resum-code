@@ -1,14 +1,12 @@
-# legend-multi-fidelity-surrogate-model
+# RESuM: Rare Event Surrogate Model for  Physics Detector Design
 
-The in-situ production of long-lived radio-isotopes by cosmic muon interactions may generate a non-negligible background for rare event searches deep underground. The delayed decay of Ge-77(m) has been identified as the dominant in-situ cosmogenic contributor for a neutrinoless double-beta decay search with Ge-76. The future ton-scale LEGEND-1000 experiment requires a total background of < 10^{-5} cts/(keV kg yr). 
+The experimental discovery of neutrinoless double-beta decay (NLDBD) would answer one of the most important questions in physics: Why is there more matter than antimatter in our universe? To maximize the chances of detection, NLDBD experiments must optimize their detector designs to minimize the probability of background events contaminating the detector. Given that this probability is inherently low, design optimization either requires extremely costly simulations to generate sufficient background counts or contending with significant variance. In this work, we formalize this dilemma as a Rare Event Design (RED) problem: identifying optimal design parameters when the design metric to be minimized is inherently small. We then designed the Rare Event Surrogate Model (RESuM) for physics detector design optimization under RED conditions. RESuM uses a pretrained Conditional Neural Process (CNP) model to incorporate additional prior knowledges into a Multi-Fidelity Gaussian Process model. We applied RESuM to optimize neutron moderator designs for the LEGEND NLDBD experiment, identifying an optimal design that reduces neutron background by ($66.5\pm3.5$)\% while using only 3.3\% of the computational resources compared to traditional methods. Given the prevalence of RED problems in other fields of physical sciences, the RESuM algorithm has broad potential for simulation-intensive applications.
 
-Neutron backgrounds have a strong dependence on laboratory depth, shielding material, and cryostat design. The addition of passive neutron moderators  results in a reduced background contribution. Therefore, Monte Carlo studies using a custom simulation module (https://github.com/MoritzNeuberger/warwick-legend/tree/master) based on Geant4 are performed to optimize the moderator screening effect. 
-
-However, using traditional Monte Carlo simulations a full optimization of a many parameter space may still be a time consuming and difficult task to address. Machine learning can help in both speeding up common modeling problems, as well as help to minimize the application of computational expensive standard Monte Carlo methods. The Multi-Fidelity Gaussian Process based study presented here aims to demonstrate a technique on a small-scale application, which then is gradually adaptable to the more ambitious task of exploring innovative solutions to the design of detectors for future Ge-76 experiments.
+See [arxiv:2410.03873](http://arxiv.org/abs/2410.03873)
 
 ![alt text](https://github.com/annkasch/legend-multi-fidelity-surrogate-model/blob/main/MF-GP_concept.png)
 
-### Visualization
+### Visualization of the LEGEND neutron moderator
 
 [Link to visualization tool](https://annkasch.github.io/legend-multi-fidelity-surrogate-model/)
 
