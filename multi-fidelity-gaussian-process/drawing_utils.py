@@ -1,15 +1,16 @@
 import numpy as np
-np.random.seed(20)
+np.random.seed(42)
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib import colors as mcolors
 colors = dict(mcolors.BASE_COLORS, **mcolors.CSS4_COLORS)
-import sys
-sys.path.append('../utilities')
-from matplotlib import cm
-import matplotlib.patches as mpatches
 from emukit.multi_fidelity.convert_lists_to_array import convert_x_list_to_array
 import pandas as pd
+import os
+from dotenv import load_dotenv
+# Load environment variables from .env file
+load_dotenv()
+resum_path = os.getenv("RESUM_PATH")
 
 
 
@@ -21,7 +22,7 @@ def draw_model(mf_model, xmin, xmax, labels, factor=1., version='v1', x_fixed=[1
     nrow=int(np.ceil(len(labels)/ncol))
     fig,ax = plt.subplots(nrow,ncol,figsize=(15, 5),constrained_layout=True)
     ax = fig.axes
-    pdf=PdfPages(f'out/{version}/neutron-moderator-multi-fidelity-model_{version}.pdf')
+    pdf=PdfPages(f'{resum_path}/out/{version}/neutron-moderator-multi-fidelity-model_{version}.pdf')
 
     indices = [i for i in range(len(ax))]
     indices[0], indices[ncol-1] = indices[ncol-1], indices[0]
@@ -78,7 +79,7 @@ def draw_model_updated(fig, mf_model,xmin, xmax, labels, factor=1., version='v1'
     SPLIT = 100
     ax = fig.axes
     #fig.suptitle(r"Projection to x(r,b,N,$\theta$,L) ="+f"{x_fixed}")
-    pdf=PdfPages(f'out/{version}/updated-neutron-moderator-multi-fidelity-model_{version}.pdf')
+    pdf=PdfPages(f'{resum_path}/out/{version}/updated-neutron-moderator-multi-fidelity-model_{version}.pdf')
 
     for i in range(0,len(labels)):   
 
@@ -133,7 +134,7 @@ def draw_acquisition_func(fig, us_acquisition, xlow, xhigh, labels, x_next=np.ar
     SPLIT = 50
     df= pd.DataFrame()
     ax2 = fig.axes
-    pdf=PdfPages(f'out/{version}/acquisition-function_{version}.pdf')
+    pdf=PdfPages(f'{resum_path}/out/{version}/acquisition-function_{version}.pdf')
     
     for i in range(0,len(xlow)):
         ax2[i].set_title(f'Projected acquisition function - {labels[i]}');
@@ -170,12 +171,12 @@ def draw_acquisition_func(fig, us_acquisition, xlow, xhigh, labels, x_next=np.ar
 
     pdf.savefig(fig)
     pdf.close()
-    df.to_csv(f'out/{version}/acquisition-function_{version}.csv')
+    df.to_csv(f'{resum_path}/out/{version}/acquisition-function_{version}.csv')
     return fig
        
 def draw_model_acquisition_func(fig1, fig2, labels, version='v1'):
     
-    pdf=PdfPages(f'out/{version}/model-acquisition-evolution_{version}.pdf')
+    pdf=PdfPages(f'{resum_path}/out/{version}/model-acquisition-evolution_{version}.pdf')
     ax1 = fig1.axes
     ax2 = fig2.axes
 
@@ -317,5 +318,5 @@ def model_validation(mf_model, file_in, x_labels, y_label, version):
         handles, labels = plt.gca().get_legend_handles_labels()
         order = [3,2,1,0]
         plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order],loc=9, bbox_to_anchor=(0.665,1.),ncol=5)
-        plt.savefig(f'out/{version}/model-validation_{version}.pdf')
+        plt.savefig(f'{resum_path}/out/{version}/model-validation_{version}.pdf')
         return fig

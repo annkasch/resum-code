@@ -6,7 +6,14 @@ import os
 import sys
 from tqdm import tqdm
 from pathlib import Path
-sys.path.append('/global/cfs/projectdirs/legend/users/aschuetz/analysis/legend-multi-fidelity-surrogate-model/utilities')
+from dotenv import load_dotenv
+# Load environment variables from .env file
+load_dotenv()
+resum_path = os.getenv("RESUM_PATH")
+if resum_path is None:
+    raise ValueError("Environment variable RESUM_PATH is not set. Make sure to define it in your .env file.")
+utilities_path = os.path.join(resum_path, "utilities")
+sys.path.append(utilities_path)
 import utilities as utils
 
 

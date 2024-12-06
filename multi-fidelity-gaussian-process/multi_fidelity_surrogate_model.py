@@ -23,7 +23,16 @@ from scipy.optimize import NonlinearConstraint
 from emukit.core.loop.loop_state import create_loop_state
 from emukit.bayesian_optimization.loops import BayesianOptimizationLoop
 from emukit.core.optimization.multi_source_acquisition_optimizer import MultiSourceAcquisitionOptimizer
-sys.path.append('../utilities')
+
+import os
+from dotenv import load_dotenv
+# Load environment variables from .env file
+load_dotenv()
+resum_path = os.getenv("RESUM_PATH")
+if resum_path is None:
+    raise ValueError("Environment variable RESUM_PATH is not set. Make sure to define it in your .env file.")
+utilities_path = os.path.join(resum_path, "utilities")
+sys.path.append(utilities_path)
 import plotting_utils as plotting
 
 

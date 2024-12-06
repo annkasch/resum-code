@@ -11,7 +11,14 @@ import gc
 from IPython.display import display, Image
 import re
 import sys
-sys.path.append('../utilities')
+from dotenv import load_dotenv
+# Load environment variables from .env file
+load_dotenv()
+resum_path = os.getenv("RESUM_PATH")
+if resum_path is None:
+    raise ValueError("Environment variable RESUM_PATH is not set. Make sure to define it in your .env file.")
+utilities_path = os.path.join(resum_path, "utilities")
+sys.path.append(utilities_path)
 import utilities as utils
 
 

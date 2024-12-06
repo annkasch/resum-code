@@ -3,7 +3,6 @@ import pandas as pd
 import os
 from tqdm import tqdm
 import sys
-sys.path.append('../utilities')
 import utilities as utils
 
 def overwrite_first_line(files_base_name,first_line_new,ending='.csv'):
