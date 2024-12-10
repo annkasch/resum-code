@@ -11,6 +11,7 @@ import gc
 from IPython.display import display, Image
 import re
 import sys
+import yaml
 from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
@@ -37,7 +38,7 @@ def readin_data(filelist, usecols=[]):
     """
 
     if len(filelist) == 0:
-        raise SystemError("Empty filelist. No neutron tier files found. Run tier file generation first.")
+        raise SystemError("Empty filelist. No tier files found. Run tier file generation first.")
 
     it =0
     print("Reading in data files...")
@@ -224,8 +225,10 @@ def mixup_augment_data(filename, use_beta):
     Returns: 
     """
     df_bkg = dd.read_csv(f"{filename}", delimiter=',', index_col = False)
-    df_sig = df_bkg.loc[df_bkg["nC_Ge77"] == 1]
-    df_bkg = df_bkg.loc[df_bkg["nC_Ge77"] == 0]
+    with open("settings.yaml", "r") as f:
+        config_file = yaml.safe_load(f)
+    df_sig = df_bkg.loc[df_bkg[config_file["simulation_settings"]["y_raw_data_gen"]] == 1]
+    df_bkg = df_bkg.loc[df_bkg[config_file["simulation_settings"]["y_raw_data_gen"]] == 0]
     del df_sig["Unnamed: 0"]
     del df_bkg["Unnamed: 0"]
 
@@ -244,8 +247,8 @@ def mixup_augment_data(filename, use_beta):
     x = alpha * x_sig + (1-alpha) * x_bkg
     df_new = dd.from_array(x, columns=names)        
 
-    fout = filename.replace("/tier2/", f"/tier3/beta_{use_beta[0]}_{use_beta[1]}/")
-    fout = fout.replace("tier2", "tier3")
+    fout = filename.replace("/tier3/", f"/tier4/beta_{use_beta[0]}_{use_beta[1]}/")
+    fout = fout.replace("tier3", "tier4")
 
     df_new=df_new.repartition(npartitions=1)
     df_new.to_csv([fout])
@@ -303,7 +306,9 @@ class DataGeneration(object):
             if os.path.exists(self._filename) == False:
                 if self.use_data_augmentation == "mixup" and mode == "training":
                     self._ratio_testing = 0.
-                generate_data(path_to_files+"neutron", self._ratio_testing, self._filename, config_wise)
+                with open("settings.yaml", "r") as f:
+                    config_file = yaml.safe_load(f)
+                generate_data(path_to_files+config_file["simulation_setting"]["file_prefix"], self._ratio_testing, self._filename, config_wise)
             
             if mode == "training":
                 if self.use_data_augmentation == "smote":
@@ -463,21 +468,23 @@ class DataGeneration(object):
 
         return CNPRegressionDescription(query=query, target_y=batch_target_y)
     
-    def build_tier3(self, path_to_tier2, use_beta = None):
-        filelist = utils.get_all_files(path_to_tier2+"neutron")
+    def build_tier4(self, path_to_tier3, use_beta = None):
+        with open("settings.yaml", "r") as f:
+            config_file = yaml.safe_load(f)
+        filelist = utils.get_all_files(path_to_tier3+config_file["simulation_setting"]["file_prexif"])
         for file in tqdm(filelist):
 
             if self.use_data_augmentation == "smote":
-                fout = path_to_tier2.replace("/tier2/", f"/tier3/smote{self._sig_bkg_ratio}/")
+                fout = path_to_tier3.replace("/tier3/", f"/tier4/smote{self._sig_bkg_ratio}/")
                 os.system(f'mkdir -p {fout}')
                 smote_augment_data(file, self._names_x, self._name_y, self._sig_bkg_ratio, plotting=False)
-                fout=file.replace("/tier2/", f"/tier3/smote{self._sig_bkg_ratio}/")
-                fout=fout.replace("tier2","tier3")
+                fout=file.replace("/tier3/", f"/tier4/smote{self._sig_bkg_ratio}/")
+                fout=fout.replace("tier3","tier4")
                 frename = f'{file}_smote{self._sig_bkg_ratio}'
                 os.system(f'mv {frename} {fout}')
 
             elif self.use_data_augmentation == "mixup":
-                fout = path_to_tier2.replace("/tier2/", f"/tier3/beta_{use_beta[0]}_{use_beta[1]}/")
+                fout = path_to_tier3.replace("/tier3/", f"/tier4/beta_{use_beta[0]}_{use_beta[1]}/")
                 os.system(f'mkdir -p {fout}')
                 mixup_augment_data(file, use_beta)
 
