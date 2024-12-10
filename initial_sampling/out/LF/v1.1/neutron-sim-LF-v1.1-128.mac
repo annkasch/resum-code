@@ -1,0 +1,51 @@
+# minimal command set test
+# verbose
+#/random/setSeeds 9530 7367
+
+/run/verbose 0
+/tracking/verbose 0
+/run/setCut 3.0 cm
+/tracking/verbose 0
+#/random/setSeeds 9530 7367
+/run/verbose 0
+/tracking/verbose 0
+/run/setCut 3.0 cm
+/tracking/verbose 0
+
+/WLGD/detector/setGeometry baseline_large_reentrance_tube
+/WLGD/detector/Cryostat_Radius_Outer 325
+/WLGD/detector/Cryostat_Height 325
+#/WLGD/detector/Cryostat_Vacgap 50
+/WLGD/detector/With_Gd_Water 1
+
+/WLGD/detector/With_NeutronModerators 4 # Design 4 (with lids)
+/WLGD/detector/TurbineAndTube_Length 39.0 cm
+/WLGD/detector/TurbineAndTube_NPanels 5.0
+/WLGD/detector/TurbineAndTube_Angle 3.0
+/WLGD/detector/TurbineAndTube_Height 300 cm
+/WLGD/detector/TurbineAndTube_Width 10.0 cm
+/WLGD/detector/TurbineAndTube_Radius 124.0 cm
+/WLGD/detector/TurbineAndTube_zPosition 42 cm
+/WLGD/detector/Which_Material PMMA
+
+/WLGD/event/saveAllEvents 1
+#/WLGD/event/saveAllProductions 1
+
+#Init
+/run/initialize
+
+#Idle state
+#/WLGD/runaction/WriteOutNeutronProductionInfo 1
+#/WLGD/runaction/WriteOutGeneralNeutronInfo 1
+/WLGD/runaction/WriteOutAllNeutronInfoRoot 0
+#/WLGD/runaction/getIndividualGeDepositionInfo 1
+#/WLGD/runaction/getIndividualGdDepositionInfo 1
+/WLGD/runaction/getIndividualNeutronStepInfo 1
+
+/WLGD/step/getDepositionInfo 1
+/WLGD/step/getIndividualDepositionInfo 1
+/WLGD/generator/getReadInSeed 1
+/WLGD/generator/setGenerator NeutronsFromFile                    # set the primary generator to the (Alpha,n) generator in the moderators (options: "MeiAndHume", "Musun", "Ge77m", "Ge77andGe77m", "ModeratorNeutrons" = generate neutrons inside the neutron moderators, "ExternalNeutrons" (generate neutrons from outside the water tank)))
+/WLGD/generator/setMUSUNFile ${MUSUN_DIR}/neutron-inputs-design0_25k_${RUN_NUMBER}_v2.dat
+# start
+/run/beamOn ${EVENTS}

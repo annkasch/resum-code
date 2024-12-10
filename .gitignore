@@ -1,4 +1,8 @@
 conditional-neural-process/out/*
 multi-fidelity-gaussian-process/out/*
+multi-fidelity-gaussian-process/*.png
 sampling/out/*
+adaptive_importance_sampling/out/*
 simulation/out/*
+simulation/data/*
+simulation/*.png
