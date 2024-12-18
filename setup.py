@@ -1,14 +1,5 @@
-import os
-import subprocess
 from pathlib import Path
-
-def install_packages():
-    """Install necessary Python packages."""
-    required_packages = [
-        "numpy",
-        "python-dotenv"
-    ]
-    subprocess.check_call([os.sys.executable, "-m", "pip", "install", *required_packages])
+from setuptools import setup, find_packages
 
 def set_repository_path():
     """Set the repository path as an environment variable in .env."""
@@ -19,13 +10,44 @@ def set_repository_path():
 
     # Create or update .env file
     env_file = repo_path / ".env"
-    set_key(str(env_file), "RESUM_PATH", str(repo_path))
+    set_key(str(env_file), "REPO_PATH", str(repo_path))
 
     print(f"Repository path set in .env as REPO_PATH={repo_path}")
 
-if __name__ == "__main__":
-    print("Installing required packages...")
-    install_packages()
-    print("Setting repository path...")
-    set_repository_path()
-    print("Setup complete!")
+# Set the repository path
+print("Setting repository path...")
+set_repository_path()
+print("Setup script executed!")
+
+# Formal setuptools setup
+setup(
+    name="resum",
+    version="1.0.0",
+    description="A Python package for a rare event surrogate model (RESuM)",
+    author="Ann-Kathrin Schuetz",
+    author_email="annkaschue@gmail.com",
+    packages=["resum"],#find_packages(where="."),
+    #package_dir={"": "."},
+    install_requires=[
+        "numpy",
+        "torch",
+        "matplotlib",
+        "pyyaml",
+        "ipywidgets",
+        "pandas",
+        "tqdm",
+        "dask[dataframe]",
+        "python-dotenv",
+        "imbalanced-learn==0.8.1",
+        "termcolor",
+        "scipy",
+        "GPy",
+        "emukit",
+    ],
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    ],
+    python_requires=">=3.7",
+)

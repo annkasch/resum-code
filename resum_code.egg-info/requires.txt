@@ -1,0 +1,14 @@
+numpy
+torch
+matplotlib
+pyyaml
+ipywidgets
+pandas
+tqdm
+dask[dataframe]
+python-dotenv
+imbalanced-learn==0.8.1
+termcolor
+scipy
+GPy
+emukit
