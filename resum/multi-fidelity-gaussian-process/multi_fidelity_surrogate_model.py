@@ -1,4 +1,5 @@
 import numpy as np
+np.random.seed(123)
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 from sklearn.metrics import mean_squared_error
@@ -18,6 +19,7 @@ from emukit.bayesian_optimization.acquisitions.entropy_search import MultiInform
 from emukit.core.loop.candidate_point_calculators import SequentialPointCalculator
 from emukit.core.loop.loop_state import create_loop_state
 from emukit.core.optimization.multi_source_acquisition_optimizer import MultiSourceAcquisitionOptimizer
+import copy
 
 # Ensure reproducibility
 np.random.seed(123)
@@ -25,7 +27,7 @@ np.random.seed(123)
 
 class MFGPModel():
     def __init__(self, trainings_data, noise, inequality_constraints=None):
-        self.trainings_data = trainings_data
+        self.trainings_data = copy.deepcopy(trainings_data)
         self.fidelities = list(self.trainings_data.keys())
         self.nfidelities = len(self.fidelities)
         self.noise = noise
@@ -35,6 +37,8 @@ class MFGPModel():
         else:
             self.inequality_constraints=inequality_constraints
 
+    def set_traings_data(self, trainings_data):
+        self.trainings_data = copy.deepcopy(trainings_data)
 
     def build_model(self,n_restarts=10):
         """
@@ -199,62 +203,6 @@ class MFGPModel():
         x_min=[x for x in x_min[0]]
         return x_min, self.evaluate_model(x_min, fidelity)
     
-
-    def model_validation(self, x_test, y_test):
-        x_test, y_test = (np.atleast_2d(x_test), np.atleast_2d(y_test).T)
-
-        counter_1sigma = 0
-        counter_2sigma = 0
-        counter_3sigma = 0
-        MAE=0
-        NMSE=0
-        MSSE=0
-        mfsm_model_mean = np.empty(shape=[0, 0])
-        mfsm_model_std = np.empty(shape=[0, 0])
-        hf_data=[]
-        x=[]
-        for i in range(len(x_test)):
-
-                SPLIT = 1
-                x_plot = []
-                for i in range(self.nfidelities):
-                    x_plot.append((np.atleast_2d(x_test[i])))
-                X_plot = convert_x_list_to_array(x_plot)
-                hhf_mean_mf_model, hhf_var_mf_model = self.model.predict(X_plot[(self.nfidelities-1)*SPLIT:])
-                hhf_std_mf_model = np.sqrt(hhf_var_mf_model)
-
-                hf_data.append(y_test[i])
-                x.append(i)
-                mfsm_model_mean=np.append(mfsm_model_mean,hhf_mean_mf_model[0,0])
-                mfsm_model_std=np.append(mfsm_model_std,hhf_std_mf_model[0,0])
-                if (y_test[i] < hhf_mean_mf_model+hhf_std_mf_model) and (y_test[i] > hhf_mean_mf_model-hhf_std_mf_model):
-                        counter_1sigma += 1
-                if (y_test[i] < hhf_mean_mf_model+2*hhf_std_mf_model) and (y_test[i] > hhf_mean_mf_model-2*hhf_std_mf_model):
-                        counter_2sigma += 1
-                if (y_test[i] < hhf_mean_mf_model+3*hhf_std_mf_model) and (y_test[i] > hhf_mean_mf_model-3*hhf_std_mf_model):
-                        counter_3sigma += 1
-
-        print("1 sigma: ", counter_1sigma/len(hf_data)*100.," %" )
-        print("2 sigma: ", counter_2sigma/len(hf_data)*100.," %" )
-        print("3 sigma: ", counter_3sigma/len(hf_data)*100.," %" )
-
-        fig = plt.subplots(figsize=(12, 2.5))
-        #plt.bar(x=np.arange(len(mfsm_model_mean)), height=mfsm_model_mean, color="lightgray", label='RESuM')
-        plt.fill_between(x=np.arange(len(mfsm_model_mean)), y1=mfsm_model_mean-3*mfsm_model_std, y2=mfsm_model_mean+3*mfsm_model_std, color="coral",alpha=0.2, label=r'$\pm 3\sigma$')
-        plt.fill_between(x=np.arange(len(mfsm_model_mean)), y1=mfsm_model_mean-2*mfsm_model_std, y2=mfsm_model_mean+2*mfsm_model_std, color="yellow",alpha=0.2, label=r'$\pm 2\sigma$')
-        plt.fill_between(x=np.arange(len(mfsm_model_mean)), y1=mfsm_model_mean-mfsm_model_std, y2=mfsm_model_mean+mfsm_model_std, color="green",alpha=0.2, label=r'RESuM $\pm 1\sigma$')
-        plt.xlabel('HF Simulation Trial Number')
-        plt.ylim(0.,0.55)
-        plt.ylabel(r'$y_{raw}$')
-        plt.plot(x[:],hf_data[:],'.',color="black", label="HF Validation Data")
-        handles, labels = plt.gca().get_legend_handles_labels()
-        order = [3,2,1,0]
-        plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order],loc=9, bbox_to_anchor=(0.665,1.),ncol=5)
-
-        mse = mean_squared_error(hf_data,mfsm_model_mean, squared=True)
-
-        print(counter_1sigma/len(hf_data)*100.," & ",counter_2sigma/len(hf_data)*100.," & ",counter_3sigma/len(hf_data)*100.," & ",f"{mse:.4f}")
-        return fig, [counter_1sigma/len(hf_data)*100.,counter_2sigma/len(hf_data)*100.,counter_3sigma/len(hf_data)*100.,mse]
 
 class MFGPAuxilaryModel(Acquisition):
     def __init__(self, mf_model, fidelity):
