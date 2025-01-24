@@ -1,16 +1,9 @@
+
 import matplotlib.pyplot as plt
-import numpy as np
+import numpy as np #numpy==1.24.3
 from collections import Counter
 import sys
-import os
-from dotenv import load_dotenv
-# Load environment variables from .env file
-load_dotenv()
-resum_path = os.getenv("RESUM_PATH")
-if resum_path is None:
-    raise ValueError("Environment variable RESUM_PATH is not set. Make sure to define it in your .env file.")
-utilities_path = os.path.join(resum_path, "utilities")
-sys.path.append(utilities_path)
+sys.path.append('../utilities')
 import plotting_utils as plotting
 
 def plot(prediction_y_training, target_y_training, loss_training, prediction_y_testing, target_y_testing,  loss_testing, it=None):

@@ -6,3 +6,4 @@ adaptive_importance_sampling/out/*
 simulation/out/*
 simulation/data/*
 simulation/*.png
+arxiv/*

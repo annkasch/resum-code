@@ -1,7 +1,7 @@
 # https://community.plotly.com/t/rotating-3d-plots-with-plotly/34776/2
 # https://community.plotly.com/t/how-to-export-animation-and-save-it-in-a-video-format-like-mp4-mpeg-or/64621/2
 import plotly.graph_objects as go
-import numpy as np
+import numpy as np # numpy==1.24.3
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.patches import Rectangle
@@ -385,17 +385,3 @@ def get_subplot_moderator(ax, x):
     a2 = r2 * np.cos( alpha )
     b2 = r2 * np.sin( alpha )
     ax.plot( a2, b2, color='gray')
-
-def parameter_constraints(x):
-        if any(i < 0 for i in x) is True:
-            return 0
-        elif get_inner_radius(x) < 90.:
-            return 0
-        elif get_outer_radius(x) > 265.:
-            return 0
-        elif get_outer_radius(x)-get_inner_radius(x)  > 20.:
-            return 0
-        elif x[2]*x[1]*x[4] > np.pi*(get_outer_radius(x)**2-get_inner_radius(x)**2):
-                return 0
-        else:
-            return 1
