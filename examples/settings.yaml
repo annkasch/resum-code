@@ -1,0 +1,40 @@
+cnp_settings:
+  training_epochs: 5
+  context_ratio: 0.3333333
+  context_is_subset: True
+  batch_size: 3000
+  files_per_batch: 50
+  number_of_walkers: 1
+  config_wise: False
+  version: v1.6
+  use_data_augmentation: mixup #"smote" #False #"mixup"
+  use_beta: [0.1,0.1] # uniform => None, beta => [a,b] U-shape [0.1,0.1] Uniform [1.,1.] falling [0.2,0.5] rising [0.2,0.5]
+  signal_to_background_ratio: "" # "_1to4" # used for smote augmentation
+  ratio_testing_vs_training: 1/40
+  plot_after: 500
+
+simulation_settings:
+  theta_headers: ["radius","thickness","npanels","theta","length"]
+  phi_labels: ["r_0[m]","z_0[m]","time_t[ms]","r_t[m]","z_t[m]","L_t[m]","ln(E0vsET)","edep_t[eV]","nsec"]
+  target_label: ["nC_Ge77"]
+  signal_condition: ["nC_Ge77==1"]
+  weights_labels: ["nC_Ge77_scaling"]
+  y_raw_cnp: total_nC_Ge77[cts]
+  y_raw_data_gen: nC_Ge77
+  version_lf: v1.4
+  version_hf: v1.1
+  file_prefix: neutron
+  nsamples_lf: 50000
+  nsamples_hf: 10000000
+
+path_settings:
+  path_to_training_files: ./in/cnp/data/lf/
+  path_to_test_files_lf: ./in/cnp/data/lf/
+  path_to_test_files_hf: ./in/cnp/data/hf/
+  path_out:  ./out/cnp
+  f_out: CNPGauss_v1.6_3540_c1000_t2000_beta_0.1_0.1
+  path_to_model: ./out/cnp
+
+data_generation:
+  num_total_points: 50000
+  partition_size: 40

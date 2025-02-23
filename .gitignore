@@ -1,0 +1,4 @@
+**/examples/out
+**/examples/in/cnp/*
+dist/
+resum.egg-info/
