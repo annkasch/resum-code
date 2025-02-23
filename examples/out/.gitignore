@@ -1,3 +1,2 @@
-out/data/lf/*
-out/data/hf
+out/*
 !.gitignore
