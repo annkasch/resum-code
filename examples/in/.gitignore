@@ -1,5 +1,0 @@
-cnp/data/hf
-cnp/data/lf/*.h5
-cnp/data/lf/*.csv
-cpn/data/lf/validation
-.gitignore
