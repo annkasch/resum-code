@@ -28,13 +28,9 @@ simulation_settings:
   nsamples_hf: 10000000
 
 path_settings:
-  path_to_training_files: ./in/cnp/data/lf/
-  path_to_test_files_lf: ./in/cnp/data/lf/
-  path_to_test_files_hf: ./in/cnp/data/hf/
+  path_to_training_files: ./in/data/lf/
+  path_to_test_files_lf: ./in/data/lf/
+  path_to_test_files_hf: ./in/data/hf/
   path_out:  ./out/cnp
   f_out: CNPGauss_v1.6_3540_c1000_t2000_beta_0.1_0.1
   path_to_model: ./out/cnp
-
-data_generation:
-  num_total_points: 50000
-  partition_size: 40
